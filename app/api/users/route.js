@@ -20,7 +20,7 @@ export async function GET(){
 export async function POST(request){
   //verify is user is admin
   if(isAdmin(request) === false) return NextResponse.json({error:"not admin"}, {status:401}); 
-  
+
   //hash the password
    const payload =  await request.json();
    const hashedPassword = await hashPassword(payload.password);
@@ -30,5 +30,8 @@ export async function POST(request){
    const result = userSchema.safeParse(payload);
    if (!result.success) return NextResponse.json({ error: result.error }); 
    
+   //verify if the user already exist
+   const userExist =  await User.findOne({email:payload.email}); 
+   if(userExist) return NextResponse.json({error:"user already exist"},{status:409}); 
    return restAPI.post(payload)
 }

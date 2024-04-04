@@ -7,7 +7,7 @@ export default class Crud{
     async get(id) {
         let query = id ? {_id:id}: null; 
             try{
-                const entity = await this.entity.find(query);
+                const entity = await this.entity.find(query).select("-password");
                 
                 if(entity.length > 0) return NextResponse.json(entity, {status:200}); 
 
@@ -19,22 +19,34 @@ export default class Crud{
     }
 
     async post (payload){
-        // TO DO: if entity === User do not resend the password
+    
         try{
-            const newEntity = new this.entity(payload) 
-            await newEntity.save();
-            return NextResponse.json(newEntity, {status:201});  
+            const newEntity = new this.entity(payload);  
+            const savedEntity = await newEntity.save();
+            const savedEntityObject = savedEntity.toObject();
+
+            //remove the password from the document
+            if(savedEntityObject.password) delete savedEntityObject.password; 
+            
+            return NextResponse.json(savedEntityObject, {status:201});  
         
-           }catch(e){
+           }catch(e){ 
                 return NextResponse.json({error:e.message}, {status:500})
            }
     }
 
     async put(id, payload){
-        // TO DO: if entity === User do not resend the password
+    
         try{
             const updatedEntity = await this.entity.findOneAndUpdate({_id:id}, payload, {new:true});
-            if(updatedEntity) return NextResponse.json({updatedEntity}, {status:201})    
+            
+            //remove the password from the document
+            if(updatedEntity){
+                const savedEntityObject = updatedEntity.toObject();
+                if(savedEntityObject.password) delete entityObject.password;
+
+                return NextResponse.json({savedEntityObject}, {status:201}) 
+            }    
             return NextResponse.json({error:"Element not found"}, {status:404}); 
              
         }catch(e){
@@ -46,7 +58,7 @@ export default class Crud{
     async delete(id){
         try{
             const deleteEntity = await this.entity.deleteOne({_id:id}, {new:true});
-            if(deleteEntity.deletedCount > 0) return NextResponse.json({deleteEntity}, {status:200}); 
+            if(deleteEntity.deletedCount > 0) return NextResponse.json({message:"user deleted"}, {status:200}); 
             return NextResponse.json({error:"Element not found"}, {status:404});
     
         }catch(e){

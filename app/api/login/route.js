@@ -11,8 +11,7 @@ await dbConnect();
 
 export async function POST(request){
     //verify if the user is already connected 
-    let userPayload = request.cookies.get("user")?.value;
-    console.log(userPayload); 
+    let userPayload = request.cookies.get("user")?.value
     if(userPayload) return NextResponse.json({error:"user already connected"}, {status:409}); 
 
     //Verify the validity of the payload with zod

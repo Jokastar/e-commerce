@@ -1,11 +1,11 @@
 import {NextResponse} from "next/server"; 
 import * as jose from "jose";
-import generateJwtToken from "./app/lib/generateJwtToken"; 
 
 export  async function middleware(request){
     const response = NextResponse.next();
     try{
         const accessToken = request.headers.get("Authorization")?.replace("Bearer", "").trim(); 
+    
         const secretKey = new TextEncoder().encode(process.env.JOSE_SECRET_KEY)
         const regex = /^\/api\/products(?:\/.*)?$/
 
@@ -19,7 +19,7 @@ export  async function middleware(request){
             if(request.nextUrl.pathname === "/api/login" || request.nextUrl.pathname === "/api/signin"){
                 //delete previous token present in the cookies
                 response.cookies.delete("user"); 
-
+        
                 return response; 
             } 
             return NextResponse.json({error:"no token provided"}, {status:401}); 
@@ -28,7 +28,6 @@ export  async function middleware(request){
         // decode the token
         const {payload:{user}} = await jose.jwtVerify(accessToken, secretKey);
         let userStringify = JSON.stringify(user);
-        console.log(userStringify); 
         response.cookies.set("user", userStringify);
         return response; 
 
@@ -38,11 +37,8 @@ export  async function middleware(request){
             return NextResponse.json({error: e.name}, {status:401})
 
         }else if(e.name == "JWTExpired"){
-    //if token expires create a new token and delete old user cookies
-            const user = JSON.parse(response.cookies.get("user")); 
-            const token = await generateJwtToken(user); 
-            response.cookies.delete("user"); 
-            return NextResponse.json({newToken:token}, {status:200})
+            //if token expires create a new token and delete old user cookies 
+            return NextResponse.json({error:"token expired"}, {status:401})
         }
         return NextResponse.json({error:e}, {status:500})
     }

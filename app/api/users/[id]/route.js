@@ -1,8 +1,7 @@
 
 import { NextResponse } from "next/server";
 
-import rest from "../../../lib/rest"; 
-import isAdmin from "../../../lib/isAdmin"
+import rest from "../../../lib/rest";
 import isUser from "@/app/lib/isUser";
 import hashPassword from "@/app/lib/hashPassword";
 
@@ -14,7 +13,7 @@ const restAPI = new rest(User);
 export async function PATCH(request, context){
     const {id} = context.params;
     if(!id) return NextResponse.json({error:"Bad request", message:"provide user id"}, {status:400})
-    //verify if its the user id 
+    //verify if ID and userID match 
     if(isUser(request, id) === false) return NextResponse.json({error:"not user"}, {status:401}); 
     const updatedUser = await request.json();
 
